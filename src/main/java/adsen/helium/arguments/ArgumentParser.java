@@ -50,9 +50,6 @@ public abstract class ArgumentParser<T extends BaseConfig> {
         }
     }
 
-    //todo change all consume methods to return an OptionHandler instead, and pass the config into the action. This will require making the methods parametrized and non-static, but that's not an issue
-
-
     /**
      * Handles a string argument
      *
@@ -280,7 +277,7 @@ public abstract class ArgumentParser<T extends BaseConfig> {
                 System.err.println(parser.getUsage());
                 return Optional.of(1);
             } else {
-                System.out.println(parser.getSummary(config));
+                if (config.anyVerbose()) System.out.println(parser.getSummary(config));
                 return Optional.empty();
             }
         }

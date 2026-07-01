@@ -10,7 +10,8 @@ public class Helium {
     static void main(String[] args) {
         config = HeliumConfig.parse(args);
 
-        printlnVerbose("Welcome to Helium!");
+        printlnVerbose();
+        printlnVerbose("Starting Helium language server");
 
         printlnVerbose();
         printlnVerbose("Setting up tokeniser:");

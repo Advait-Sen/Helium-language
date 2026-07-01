@@ -6,4 +6,8 @@ package adsen.helium.arguments;
 public interface BaseConfig {
     boolean verbose();
     boolean debug();
+    /**
+     * If any verbose flags are true, even if not the overall verbose mode
+     */
+    boolean anyVerbose();
 }

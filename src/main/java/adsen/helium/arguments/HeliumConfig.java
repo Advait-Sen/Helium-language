@@ -2,17 +2,18 @@ package adsen.helium.arguments;
 
 import adsen.helium.parser.Parser;
 import adsen.helium.tokeniser.Tokeniser;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HeliumConfig implements BaseConfig, Tokeniser.TokeniserConfig, Parser.ParserConfig {
     //todo add version to config
-    static final boolean DEFAULT_PARSE = true;
-    static final boolean DEFAULT_VERBOSE = false;
-    static final boolean DEFAULT_DEBUG = false;
+    public static final boolean DEFAULT_PARSE = true;
+    public static final boolean DEFAULT_VERBOSE = false;
+    public static final boolean DEFAULT_DEBUG = false;
 
-    static final boolean DEFAULT_TOKENISER_VERBOSE = false;
-    static final boolean DEFAULT_PARSER_VERBOSE = false;
-    static final String DEFAULT_INPUT_FILENAME = "main.he";
+    public static final boolean DEFAULT_TOKENISER_VERBOSE = false;
+    public static final boolean DEFAULT_PARSER_VERBOSE = false;
+    public static final String DEFAULT_INPUT_FILENAME = "main.he";
 
     boolean parse = DEFAULT_PARSE;
     boolean verbose = DEFAULT_VERBOSE;
@@ -63,6 +64,11 @@ public class HeliumConfig implements BaseConfig, Tokeniser.TokeniserConfig, Pars
     public boolean debug() {
         return debug;
     }
+
+    @Override
+    public boolean anyVerbose() {
+        return listTokens || printParserStackMovements || printStatements;
+    }
 }
 
 final class ArgParser extends ArgumentParser<HeliumConfig> {
@@ -76,7 +82,7 @@ final class ArgParser extends ArgumentParser<HeliumConfig> {
         registerHandler(flagConsumer(config -> config.parse = false), "-np", "--no-parse");
         registerHandler(flagConsumer(config -> {
             config.verbose = true;
-            //Todo set all verbose flags true
+            //Should add new verbose flags here to be set true
             config.listTokens = true;
             config.printStatements = true;
             config.printParserStackMovements = true;
@@ -105,12 +111,40 @@ final class ArgParser extends ArgumentParser<HeliumConfig> {
 
     @Override
     protected String getUsage() {
-        return "";//Todo usage
+        return """
+                Usage: java -jar %s [options]
+                
+                Options:
+                  -m, --main <helium_file>     Main code file name (Default: %s)
+                  -v, --verbose                Enables verbose output
+                  --debug                      Starts with debug mode
+                  -np, --no-parse              Disables parsing
+                  --list-tokens                Lists all tokens found
+                  --print-statements           Prints all parsed statements
+                  --print-parser-stack         Prints movements in parser stack
+                """.formatted(getJarName(), HeliumConfig.DEFAULT_INPUT_FILENAME);
     }
 
     @Override
     protected String getSummary(HeliumConfig config) {
-        //todo summary
-        return "argument summary:";
+        List<String> lines = new ArrayList<>();
+        if (config.verbose()) {
+            lines.add("Starting verbose mode");
+            lines.add("");
+        }
+        lines.add("Helium language server config:");
+        lines.add(" - Main file: %s".formatted(config.inputFile()));
+        lines.add(" - Debug mode: %s".formatted(config.debug()));
+        lines.add(" - Parsing: %s".formatted(config.parse() ? "enabled" : "disabled"));
+
+        if (config.anyVerbose()) {
+            lines.add("");
+            lines.add("Extra verbose info:");
+            if (config.listTokens()) lines.add(" - Listing Tokens");
+            if (config.printStatements()) lines.add(" - Printing Statements");
+            if (config.printParserStackMovements()) lines.add(" - Printing Parser Stack");
+        }
+
+        return String.join("\n", lines);
     }
 }
