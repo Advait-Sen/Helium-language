@@ -25,7 +25,7 @@ public class HeliumConfig implements BaseConfig, Tokeniser.TokeniserConfig, Pars
 
     public static HeliumConfig parse(String[] args) {
         ArgumentParser.ParseResult<HeliumConfig> result = new ArgParser().parse(args);
-        result.showFeedback().ifPresent(System::exit);
+        result.showSummary().ifPresent(System::exit);
 
         return result.config();
     }
@@ -72,9 +72,9 @@ final class ArgParser extends ArgumentParser<HeliumConfig> {
      */
     ArgParser() {
         super(HeliumConfig::new);
-        registerHandler((args, i, config, errors) -> consumeString(args, i, "Main file", errors, f -> config.inputFileName = f), "-m", "--main");
-        registerHandler((_, _, config, _) -> consumeFlag(() -> config.parse = false), "-np", "--no-parse");
-        registerHandler((_, _, config, _) -> consumeFlag(() -> {
+        registerHandler(stringFlagConsumer("Main file", (config, f) -> config.inputFileName = f), "-m", "--main");
+        registerHandler(flagConsumer(config -> config.parse = false), "-np", "--no-parse");
+        registerHandler(flagConsumer(config -> {
             config.verbose = true;
             //Todo set all verbose flags true
             config.listTokens = true;
@@ -82,21 +82,23 @@ final class ArgParser extends ArgumentParser<HeliumConfig> {
             config.printParserStackMovements = true;
         }), "-v", "--verbose");
 
-        registerHandler((_, _, config, _) -> consumeFlag(() -> config.debug = true), "--debug");
+        registerHandler(flagConsumer(config -> config.debug = true), "--debug");
 
-        registerHandler((_, _, config, _) -> consumeFlag(() -> config.listTokens = true), "--list-tokens");
-        registerHandler((_, _, config, _) -> consumeFlag(() -> config.printStatements = true), "--print-statements");
-        registerHandler((_, _, config, _) -> consumeFlag(() -> config.printParserStackMovements = true), "--print-parser-stack");
+        registerHandler(flagConsumer(config -> config.listTokens = true), "--list-tokens");
+        registerHandler(flagConsumer(config -> config.printStatements = true), "--print-statements");
+        registerHandler(flagConsumer(config -> config.printParserStackMovements = true), "--print-parser-stack");
     }
 
     @Override
     protected void validateValues(HeliumConfig config, List<String> errors) {
-        if (!config.parse) {
-            if (config.printStatements) {
-                errors.add("Cannot print statements with parsing disabled");
-            }
-            if (config.printParserStackMovements) {
-                errors.add("Cannot print parser stack with parsing disabled");
+        if (!config.parse()) {
+            if (!config.verbose()) { //if the config is verbose then these will always be true, even if they're not supposed to be
+                if (config.printStatements()) {
+                    errors.add("Cannot print statements with parsing disabled");
+                }
+                if (config.printParserStackMovements()) {
+                    errors.add("Cannot print parser stack with parsing disabled");
+                }
             }
         }
     }
@@ -107,8 +109,8 @@ final class ArgParser extends ArgumentParser<HeliumConfig> {
     }
 
     @Override
-    protected String getFeedback(HeliumConfig config) {
-        //todo feedback
+    protected String getSummary(HeliumConfig config) {
+        //todo summary
         return "argument summary:";
     }
 }

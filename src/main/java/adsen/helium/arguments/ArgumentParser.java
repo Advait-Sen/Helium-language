@@ -1,6 +1,7 @@
 package adsen.helium.arguments;
 
 
+import adsen.helium.utils.TriConsumer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ import java.util.function.Supplier;
  * @param <T> the type of the config passed to the option handlers
  * @author Enrico Sintoni (<a href="https://github.com/Sintuz">Sintuz</a>)
  */
-public abstract class ArgumentParser<T> {
+public abstract class ArgumentParser<T extends BaseConfig> {
     private final Map<String, OptionHandler<T>> handlers = new HashMap<>();
     private final Supplier<T> newInstanceSupplier;
 
@@ -51,113 +52,115 @@ public abstract class ArgumentParser<T> {
 
     //todo change all consume methods to return an OptionHandler instead, and pass the config into the action. This will require making the methods parametrized and non-static, but that's not an issue
 
-    /**
-     * Requires a single additional string after the current flag.
-     *
-     * @param args   the argument list
-     * @param i      the current flag index
-     * @param name   the name of the option (for feedback)
-     * @param errors the error list
-     * @param action the callback with the successfully parsed string value
-     * @return the amount of additional arguments consumed
-     */
-    public static int consumeString(String[] args, int i, String name, List<String> errors, Consumer<String> action) {
-        if (i + 1 >= args.length) {
-            errors.add(name + " required after flag");
-            return 0;
-        }
 
-        action.accept(args[i + 1]);
-        return 1;
+    /**
+     * Handles a string argument
+     *
+     * @param name   the name of the option (for summary)
+     * @param action the callback modifying the config with the successfully parsed string value
+     * @return the handler which reads this parameter
+     */
+    public OptionHandler<T> stringFlagConsumer(String name, BiConsumer<T, String> action) {
+        return (args, i, config, errors) -> {
+            if (i + 1 >= args.length) {
+                errors.add(name + " required after flag");
+                return 0;
+            }
+            action.accept(config, args[i + 1]);
+            return 1;
+        };
     }
 
     /**
      * Custom consumer that just has a flag, whose presence will typically set a boolean config parameter to its nondefault value.
      * Hence, why it consumes no extra args
-     *
      */
-    public static int consumeFlag(Runnable action) {
-        action.run();
-        return 0;
+    public OptionHandler<T> flagConsumer(Consumer<T> action) {
+        return (_, _, config, _) -> {
+            action.accept(config);
+            return 0;
+        };
     }
+
 
     /**
      * Requires a single additional integer after the current flag.
      *
-     * @param args   the argument list
-     * @param i      the current flag index
-     * @param name   the name of the option (for feedback)
-     * @param errors the error list
+     * @param name   the name of the option (for summary)
      * @param action the callback with the successfully parsed integer value
-     * @return the amount of additional arguments consumed
+     * @return the handler which reads this parameter
      */
-    public static int consumeInt(String[] args, int i, String name, List<String> errors, Consumer<Integer> action) {
-        if (i + 1 >= args.length) {
-            errors.add(name + " required after flag");
-            return 0;
-        }
+    public OptionHandler<T> intFlagConsumer(String name, BiConsumer<T, Integer> action) {
+        return (args, i, config, errors) -> {
+            if (i + 1 >= args.length) {
+                errors.add(name + " required after flag");
+                return 0;
+            }
 
-        try {
-            action.accept(Integer.parseInt(args[i + 1]));
-        } catch (NumberFormatException _) {
-            errors.add(name + " must be an integer");
-            return 0;
-        }
+            try {
+                action.accept(config, Integer.parseInt(args[i + 1]));
+            } catch (NumberFormatException _) {
+                errors.add(name + " must be an integer");
+                return 0;
+            }
 
-        return 1;
+            return 1;
+        };
     }
+
 
     /**
      * Consumes a single optional additional integer after the current flag.
      *
-     * @param args   the argument list
-     * @param i      the current flag index
      * @param action the callback with the successfully parsed integer value
-     * @return the amount of additional arguments consumed
+     * @return the handler which reads this parameter
      */
-    public static int consumeOptionalInt(String[] args, int i, Consumer<Integer> action) {
-        if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
-            try {
-                action.accept(Integer.parseInt(args[i + 1]));
-                return 1;
-            } catch (NumberFormatException _) {
+    public OptionHandler<T> optionalIntFlagConsumer(BiConsumer<T, Integer> action) {
+        return (args, i, config, _) -> {
+            if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+                try {
+                    action.accept(config, Integer.parseInt(args[i + 1]));
+                    return 1;
+                } catch (NumberFormatException _) {
+                }
             }
-        }
-        action.accept(null);
-        return 0;
+            action.accept(config, null);
+            return 0;
+        };
     }
 
     /**
      * Accepts an optional string and an optional integer value after the current flag.
      *
-     * @param args   the argument list
-     * @param i      the current flag index
      * @param action the callback with the successfully parsed value/values
-     * @return the amount of additional arguments consumed
+     * @return the handler which reads these parameters
      */
-    public static int consumeOptionalIntAndOptionalString(String[] args, int i, BiConsumer<Integer, String> action) {
-        Integer port = null;
-        String clientAddress = null;
-        int consumed = 0;
+    public OptionHandler<T> intAndOptionalStringFlagConsumer(TriConsumer<T, Integer, String> action) {
+        return (args, i, config, _) -> {
+            Integer port = null;
+            String clientAddress = null;
+            int consumed = 0;
 
-        if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
-            try {
-                port = Integer.parseInt(args[i + 1]);
-                consumed++;
+            if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+                try {
+                    port = Integer.parseInt(args[i + 1]);
+                    consumed++;
 
-                if (i + 2 < args.length && !args[i + 2].startsWith("-")) {
-                    clientAddress = args[i + 2];
+                    if (i + 2 < args.length && !args[i + 2].startsWith("-")) {
+                        clientAddress = args[i + 2];
+                        consumed++;
+                    }
+                } catch (NumberFormatException _) {
+                    clientAddress = args[i + 1];
                     consumed++;
                 }
-            } catch (NumberFormatException _) {
-                clientAddress = args[i + 1];
-                consumed++;
             }
-        }
 
-        action.accept(port, clientAddress);
-        return consumed;
+            action.accept(config, port, clientAddress);
+            return consumed;
+        };
     }
+
 
     /**
      * Register the given handler for one or more flags.
@@ -216,12 +219,12 @@ public abstract class ArgumentParser<T> {
     protected abstract String getUsage();
 
     /**
-     * Obtains a user-friendly feedback given the parsed config.
+     * Obtains a user-friendly summary given the parsed config.
      *
-     * @param config the config for which to give the feedback
-     * @return the formatted feedback
+     * @param config the config for which to give the summary
+     * @return the formatted summary
      */
-    protected abstract String getFeedback(T config);
+    protected abstract String getSummary(T config);
 
     /**
      * Interface to handle one or more flags.
@@ -229,7 +232,7 @@ public abstract class ArgumentParser<T> {
      * @param <T> the type of the config
      */
     @FunctionalInterface
-    public interface OptionHandler<T> {
+    public interface OptionHandler<T extends BaseConfig> {
         /**
          * Handles an instance of one of the flags for which this is registered.
          *
@@ -251,7 +254,8 @@ public abstract class ArgumentParser<T> {
      * @param helpRequested whether the user requested the help
      * @param <T>           the type of the config
      */
-    public record ParseResult<T>(ArgumentParser<T> parser, T config, List<String> errors, boolean helpRequested) {
+    public record ParseResult<T extends BaseConfig>(ArgumentParser<T> parser, T config, List<String> errors,
+                                                    boolean helpRequested) {
         /**
          * Automatically determines if the parsing of the arguments resulted in errors.
          *
@@ -263,11 +267,10 @@ public abstract class ArgumentParser<T> {
 
         /**
          * Outputs to the console in the correct streams based on the parsing result.
-         * todo rename from feedback to summary
          *
          * @return an eventual exit code
          */
-        public Optional<Integer> showFeedback() {
+        public Optional<Integer> showSummary() {
             if (helpRequested()) {
                 System.out.println(parser.getUsage());
                 return Optional.of(0);
@@ -277,7 +280,7 @@ public abstract class ArgumentParser<T> {
                 System.err.println(parser.getUsage());
                 return Optional.of(1);
             } else {
-                System.out.println(parser.getFeedback(config));
+                System.out.println(parser.getSummary(config));
                 return Optional.empty();
             }
         }
