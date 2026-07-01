@@ -17,6 +17,8 @@ public class Helium {
         printlnVerbose("Setting up tokeniser:");
         Tokeniser tokeniser = new Tokeniser(config);
 
+        tokeniser.tokenise();
+
         // tokeniser.tokenise()
 
         if (config.parse()) {
@@ -28,20 +30,14 @@ public class Helium {
         }
     }
 
-    public static void printlnVerbose(Object... args) {
+    public static void printlnVerbose(Object x) {
         if (config.verbose()) {
-            for (Object arg : args) {
-                System.out.print(arg);
-            }
-            System.out.println();
+            System.out.println(x);
         }
     }
-
-    public static void printVerbose(Object... args) {
+    public static void printlnVerbose() {
         if (config.verbose()) {
-            for (Object arg : args) {
-                System.out.print(arg);
-            }
+            System.out.println();
         }
     }
 }
