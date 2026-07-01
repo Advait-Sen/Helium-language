@@ -9,6 +9,8 @@ public class Tokeniser {
         this.config = config;
     }
 
+
+
     public interface TokeniserConfig extends BaseConfig {
         boolean listTokens();
         String inputFile();
