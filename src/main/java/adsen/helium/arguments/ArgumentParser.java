@@ -265,7 +265,7 @@ public abstract class ArgumentParser<T extends BaseConfig> {
         /**
          * Outputs to the console in the correct streams based on the parsing result.
          *
-         * @return an eventual exit code
+         * @return an eventual exit code in case of an incorrect input
          */
         public Optional<Integer> showSummary() {
             if (helpRequested()) {

@@ -3,11 +3,13 @@ package adsen.helium.tokeniser;
 import adsen.helium.arguments.BaseConfig;
 import adsen.helium.arguments.ConfigClass;
 import adsen.helium.utils.FileLoader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Turns a starting input file into a list of tokens, plus grabbing any dependencies/imports and getting their tokens too
+ */
 public class Tokeniser extends ConfigClass<Tokeniser.TokeniserConfig> {
     private final Map<String, List<Token>> tokenMap = new HashMap<>();
 
@@ -28,20 +30,18 @@ public class Tokeniser extends ConfigClass<Tokeniser.TokeniserConfig> {
      * Reads the contents of a file into a list of tokens and adds it to {@link #tokenMap}
      */
     private void readFileContentsIntoTokenList(FileLoader loader) {
+
+        //todo add printlnVerboseConditional for cases like this
         setVerboseCondition(config::listTokens);
-
-        String input = loader.getFileContents();
         printlnVerbose(loader.fileName() + ":");
-        printlnVerbose(input);
+        setDefaultVerbose();
 
-        List<Token> tokens = new ArrayList<>();
 
-        //todo read input into tokens
+        StringTokeniser stringTokeniser = new StringTokeniser(loader.getFileContents(), config);
 
+        List<Token> tokens = stringTokeniser.tokenise();
 
         tokenMap.put(loader.fileName(), tokens);
-
-        setDefaultVerbose();
     }
 
     /**
@@ -53,6 +53,7 @@ public class Tokeniser extends ConfigClass<Tokeniser.TokeniserConfig> {
     }
 
     public interface TokeniserConfig extends BaseConfig {
+        //todo see if this should just be kept in StringTokeniser. In that case, TokeniserConfig can extend StringTokeniser or smth
         boolean listTokens();
 
         String inputFile();
