@@ -1,27 +1,24 @@
 package adsen.helium.tokeniser;
 
 import adsen.helium.arguments.BaseConfig;
+import adsen.helium.arguments.ConfigClass;
 import adsen.helium.utils.FileLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static adsen.helium.Helium.printlnVerbose;
-import static adsen.helium.utils.Keywords.DEFAULT_MAIN_NAME;
-
-public class Tokeniser {
-    private final TokeniserConfig config;
+public class Tokeniser extends ConfigClass<Tokeniser.TokeniserConfig> {
     private final Map<String, List<Token>> tokenMap = new HashMap<>();
 
     public Tokeniser(TokeniserConfig config) {
-        this.config = config;
+        super(config);
     }
 
     public void tokenise() {
         if (!tokenMap.isEmpty()) return;
 
-        FileLoader loader = new FileLoader(DEFAULT_MAIN_NAME);
+        FileLoader loader = new FileLoader(config.inputFile());
         loader.readInput();
         readFileContentsIntoTokenList(loader);
         postProcessTokenList(loader.fileName());
@@ -31,6 +28,8 @@ public class Tokeniser {
      * Reads the contents of a file into a list of tokens and adds it to {@link #tokenMap}
      */
     private void readFileContentsIntoTokenList(FileLoader loader) {
+        setVerboseCondition(config::listTokens);
+
         String input = loader.getFileContents();
         printlnVerbose(loader.fileName() + ":");
         printlnVerbose(input);
@@ -41,12 +40,15 @@ public class Tokeniser {
 
 
         tokenMap.put(loader.fileName(), tokens);
+
+        setDefaultVerbose();
     }
 
     /**
      * Additional optimisations to tokenisation once we have a list of valid tokens
      */
     private void postProcessTokenList(String fileName) {
+        List<Token> tokens = tokenMap.get(fileName);
         // todo post process tokens once they're all read
     }
 

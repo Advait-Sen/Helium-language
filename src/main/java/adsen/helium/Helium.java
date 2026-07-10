@@ -1,14 +1,24 @@
 package adsen.helium;
 
+import adsen.helium.arguments.ConfigClass;
 import adsen.helium.arguments.HeliumConfig;
 import adsen.helium.parser.Parser;
 import adsen.helium.tokeniser.Tokeniser;
 
-public class Helium {
-    static HeliumConfig config;
+public class Helium extends ConfigClass<HeliumConfig> {
+
+    protected Helium(HeliumConfig config) {
+        super(config);
+    }
 
     static void main(String[] args) {
-        config = HeliumConfig.parse(args);
+        HeliumConfig config = HeliumConfig.parse(args);
+
+        Helium application = new Helium(config);
+        application.run();
+    }
+
+    private void run() {
 
         printlnVerbose();
         printlnVerbose("Starting Helium language server");
@@ -27,17 +37,6 @@ public class Helium {
             Parser parser = new Parser(config);
 
             // parser.parse()
-        }
-    }
-
-    public static void printlnVerbose(Object x) {
-        if (config.verbose()) {
-            System.out.println(x);
-        }
-    }
-    public static void printlnVerbose() {
-        if (config.verbose()) {
-            System.out.println();
         }
     }
 }
