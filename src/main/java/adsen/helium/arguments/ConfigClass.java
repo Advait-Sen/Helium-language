@@ -7,31 +7,42 @@ import java.util.function.Supplier;
  */
 public abstract class ConfigClass<T extends BaseConfig> {
     protected final T config;
+    private Supplier<Boolean> conditionSupplier;
 
     protected ConfigClass(T config) {
         this.config = config;
         conditionSupplier = config::verbose;
     }
 
-    public void printlnVerbose(Object x) {
+    protected void printlnVerboseConditional(boolean condition, Object x) {
+        if (config.verbose() && condition) {
+            System.out.println(x);
+        }
+    }
+
+    protected void printlnVerboseConditional(boolean condition) {
+        if (config.verbose() && condition) {
+            System.out.println();
+        }
+    }
+
+    protected void printlnVerbose(Object x) {
         if (conditionSupplier.get()) {
             System.out.println(x);
         }
     }
 
-    public void printlnVerbose() {
+    protected void printlnVerbose() {
         if (conditionSupplier.get()) {
             System.out.println();
         }
     }
 
-    private Supplier<Boolean> conditionSupplier;
-
-    protected void setVerboseCondition(Supplier<Boolean> condition){
+    protected void setVerboseCondition(Supplier<Boolean> condition) {
         this.conditionSupplier = condition;
     }
 
-    protected void setDefaultVerbose(){
+    protected void setDefaultVerbose() {
         conditionSupplier = config::verbose;
     }
 }

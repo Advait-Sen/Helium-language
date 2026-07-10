@@ -30,12 +30,7 @@ public class Tokeniser extends ConfigClass<Tokeniser.TokeniserConfig> {
      * Reads the contents of a file into a list of tokens and adds it to {@link #tokenMap}
      */
     private void readFileContentsIntoTokenList(FileLoader loader) {
-
-        //todo add printlnVerboseConditional for cases like this
-        setVerboseCondition(config::listTokens);
-        printlnVerbose(loader.fileName() + ":");
-        setDefaultVerbose();
-
+        printlnVerboseConditional(config.listTokens(),loader.fileName() + ":");
 
         StringTokeniser stringTokeniser = new StringTokeniser(loader.getFileContents(), config);
 
