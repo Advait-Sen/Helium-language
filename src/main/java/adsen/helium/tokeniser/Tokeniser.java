@@ -30,13 +30,20 @@ public class Tokeniser extends ConfigClass<Tokeniser.TokeniserConfig> {
      * Reads the contents of a file into a list of tokens and adds it to {@link #tokenMap}
      */
     private void readFileContentsIntoTokenList(FileLoader loader) {
-        printlnVerboseConditional(config.listTokens(),loader.fileName() + ":");
-
         StringTokeniser stringTokeniser = new StringTokeniser(loader.getFileContents(), config);
 
         List<Token> tokens = stringTokeniser.tokenise();
 
+
+        setVerboseCondition(config::listTokens);
+        printlnVerbose(loader.fileName() + " raw tokens: (count)");
+        for (Token token : tokens) {
+            printlnVerbose(token);
+        }
+
         tokenMap.put(loader.fileName(), tokens);
+
+        setDefaultVerbose();
     }
 
     /**
@@ -45,10 +52,17 @@ public class Tokeniser extends ConfigClass<Tokeniser.TokeniserConfig> {
     private void postProcessTokenList(String fileName) {
         List<Token> tokens = tokenMap.get(fileName);
         // todo post process tokens once they're all read
+
+        setVerboseCondition(config::listTokens);
+        printlnVerbose(fileName + " post-processed tokens: (count)");
+        for (Token token : tokens) {
+            printlnVerbose(token);
+        }
+
+        setDefaultVerbose();
     }
 
     public interface TokeniserConfig extends BaseConfig {
-        //todo see if this should just be kept in StringTokeniser. In that case, TokeniserConfig can extend StringTokeniser or smth
         boolean listTokens();
 
         String inputFile();
