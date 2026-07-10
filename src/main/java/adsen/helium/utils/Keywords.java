@@ -6,8 +6,6 @@ import java.util.Map;
 import static adsen.helium.tokeniser.TokenType.*;
 
 public class Keywords {
-    public static final String DEFAULT_MAIN_NAME = "main";
-
     public static Map<String, TokenType> tokeniserKeywords = new HashMap<>() {{
         put("true", BOOL_LITERAL);
         put("false", BOOL_LITERAL);
@@ -39,5 +37,20 @@ public class Keywords {
 
     static {
        // OperatorType.noop(); todo OperatorType here
+
+        //Todo remove these temporary operator declarations
+        operatorTokens.put("=", DECLARATION_OPERATION);
+
+        operatorTokens.put("+", BINARY_OPERATOR);
+        operatorTokens.put("-", BINARY_OPERATOR);
+        operatorTokens.put("*", BINARY_OPERATOR);
+        operatorTokens.put("/", BINARY_OPERATOR);
+        operatorTokens.put("%", BINARY_OPERATOR);
+
+        operatorTokens.put("==", BINARY_OPERATOR);
+        operatorTokens.put("&&", BINARY_OPERATOR);
+        operatorTokens.put("||", BINARY_OPERATOR);
+
+        operatorTokens.put("!", UNARY_OPERATOR);
     }
 }

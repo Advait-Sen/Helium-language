@@ -34,12 +34,12 @@ public class Tokeniser extends ConfigClass<Tokeniser.TokeniserConfig> {
 
         List<Token> tokens = stringTokeniser.tokenise();
 
-
         setVerboseCondition(config::listTokens);
-        printlnVerbose(loader.fileName() + " raw tokens: (count)");
+        printlnVerbose(loader.fileName() + " raw tokens: (" + tokens.size() + ")");
         for (Token token : tokens) {
             printlnVerbose(token);
         }
+        printlnVerbose();
 
         tokenMap.put(loader.fileName(), tokens);
 
@@ -54,7 +54,7 @@ public class Tokeniser extends ConfigClass<Tokeniser.TokeniserConfig> {
         // todo post process tokens once they're all read
 
         setVerboseCondition(config::listTokens);
-        printlnVerbose(fileName + " post-processed tokens: (count)");
+        printlnVerbose(fileName + " post-processed tokens: (" + tokens.size() + ")");
         for (Token token : tokens) {
             printlnVerbose(token);
         }
